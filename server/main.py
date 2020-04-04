@@ -1,8 +1,15 @@
-import paho.mqtt.client as mqtt
 import json
+import os
+import sys
 import time
-from server.content import log_card,add_new_user
-from server.server_config import db, topic
+import paho.mqtt.client as mqtt
+from content import log_card,display_menu
+from server_config import topic
+
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 
 
 def disconnect(client):
@@ -14,11 +21,12 @@ def on_disconnect(client, userdata, rc=0):
 
 
 def on_message(client_, user_data, message):
+    print("otrzymałem wiadomosc\n")
     data = json.loads(message.payload)
     if not data["terminal_id"] or not data["card_id"]:
         return
 
-    log_card(data["card_id"], data["terminal"])
+    log_card(data["card_id"], data["terminal_id"])
 
 
 def on_connect(client_, user_data, flags, rc):
@@ -30,13 +38,13 @@ def main():
     client.connect('test.mosquitto.org', 1883, 60)
     client.on_message = on_message
     client.on_connect = on_connect
-    client.loop_forever()
+    client.loop_start()
 
     while not client.is_connected:
         time.sleep(1)
 
-        # expect a cli command
-    add_new_user(123, "pedro ramirez")
+    display_menu()
+
     disconnect(client)
 
 
